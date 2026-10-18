@@ -1,0 +1,30 @@
+services:
+  api:
+    build: .
+    image: mcp-demo-api:dev
+    ports:
+      - "8000:8000"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      DB_NAME: /app/data/cases.db
+    volumes:
+      - case_data:/app/data
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s  
+      
+
+  redis:
+    image: redis:7-alpine
+
+volumes:
+  case_data:
+  
+
+
