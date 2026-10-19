@@ -1,47 +1,47 @@
-    pipeline {
-        agent any
 
-        stages {
-            stage('Checkout') {
-                steps {
-                    echo 'Checking out mcp-demo from GitHub'
-                }
-            }
+pipeline {
+    agent any
 
-            stage('Verify Source') {
-                steps {
-                    sh 'pwd'
-                    sh 'ls -la'
-                    sh 'cat requirements.txt'
-                }
-            }
-
-            stage('Install Dependencies') {
-                steps {
-                    sh 'python3 -m venv .venv'
-                    sh '.venv/bin/pip install -r requirements.txt'
-                }
-            }
-
-            stage('Run Tests') {
-                environment {
-                    REDIS_HOST = 'mcp-demo-redis-1'
-                    REDIS_PORT = '6379'
-                    DB_NAME = 'jenkins_test.db'
-                }
-                steps {
-                    sh '.venv/bin/python -m pytest -v'
-                }
-    }
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out mcp-demo from GitHub'
             }
         }
 
-        post {
-            success {
-                
+        stage('Verify Source') {
+            steps {
+                sh 'pwd'
+                sh 'ls -la'
+                sh 'cat requirements.txt'
             }
-            failure {
-                echo 'Pipeline failed. Check the console output.'
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'python3 -m venv .venv'
+                sh '.venv/bin/pip install -r requirements.txt'
+            }
+        }
+
+        stage('Run Tests') {
+            environment {
+                REDIS_HOST = 'mcp-demo-redis-1'
+                REDIS_PORT = '6379'
+                DB_NAME = 'jenkins_test.db'
+            }
+            steps {
+                sh '.venv/bin/python -m pytest -v'
             }
         }
     }
+
+    post {
+        success {
+            echo 'Source verification and tests passed!'
+        }
+        failure {
+            echo 'Pipeline failed. Check the console output.'
+        }
+    }
+}
