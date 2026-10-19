@@ -1,11 +1,14 @@
-
+import pytest
 from fastapi.testclient import TestClient
 from main import app
 
-client = TestClient(app)
+@pytest.fixture(scope="module")
+def client():
+    with TestClient(app) as test_client:
+        yield test_client 
 
 
-def test_create_case():
+def test_create_case(client):
     response = client.post(
         "/cases",
         json={
@@ -23,7 +26,7 @@ def test_create_case():
     assert data["case"]["assigned_team"] == "network_team"
 
 
-def test_get_existing_case():
+def test_get_existing_case(client):
     create_response = client.post(
         "/cases",
         json={
@@ -41,13 +44,13 @@ def test_get_existing_case():
     assert get_response.json()["case_id"] == case_id
 
 
-def test_get_nonexistent_case():
+def test_get_nonexistent_case(client):
     response = client.get("/cases/nonexistent-case-12345")
 
     assert response.status_code == 404
 
 
-def test_empty_description():
+def test_empty_description(client):
     response = client.post(
         "/cases",
         json={"description": ""},
@@ -59,7 +62,7 @@ def test_empty_description():
 from unittest.mock import patch
 
 
-def test_workflow_value_error():
+def test_workflow_value_error(client):
     with patch(
         "main.case_graph.invoke",
         side_effect=ValueError("Invalid case category"),
